@@ -1,0 +1,13 @@
+{
+  "name": "logo-bot",
+  "version": "1.0.0",
+  "description": "Discord Bot für Profilbilder",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "canvas": "^3.1.2",
+    "discord.js": "^14.21.0"
+  }
+}
