@@ -1,1 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profilbild Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--surface:#141414;--border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.2);--muted:rgba(255,255,255,0.4);--r:12px}
+html,body{height:100%}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem 1.25rem}
+.container{width:100%;max-width:960px}
+header{display:flex;align-items:center;gap:1rem;margin-bottom:2rem}
+.logo-mark{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#3b82f6);display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;color:#fff;flex-shrink:0}
+h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(26px,4vw,38px);letter-spacing:.05em;line-height:1}
+h1 span{background:linear-gradient(90deg,#a855f7,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tagline{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.main-grid{display:grid;grid-template-columns:1fr 300px;gap:1.25rem;align-items:start}
+@media(max-width:680px){.main-grid{grid-template-columns:1fr}.preview-col{order:-1}}
+.panel{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:1.1rem}
+.panel+.panel{margin-top:1rem}
+.panel-label{font-family:'Oswald',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:.75rem}
+.letter-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.letter-btn{border:.5px solid var(--border);background:transparent;border-radius:7px;padding:6px 2px;font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;cursor:pointer;color:var(--muted);transition:all .12s}
+.letter-btn:hover{border-color:var(--border-h);color:#fff;background:rgba(255,255,255,.04)}
+.letter-btn.active{background:rgba(168,85,247,.15);border-color:#a855f7;color:#fff}
+.chips-row{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.chip{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .12s,border-color .12s;flex-shrink:0}
+.chip:hover{transform:scale(1.18)}
+.chip.active{border-color:#fff;transform:scale(1.18)}
+.custom-pick{width:24px;height:24px;border-radius:50%;cursor:pointer;border:1.5px dashed rgba(255,255,255,.25);overflow:hidden;flex-shrink:0;position:relative}
+.custom-pick input[type=color]{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);border:none;cursor:pointer;opacity:0}
+.custom-pick-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(255,255,255,.35);pointer-events:none}
+.color-group{margin-bottom:.75rem}
+.color-group:last-child{margin-bottom:0}
+.color-group label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.toggle-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.slider-track{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:20px;cursor:pointer;transition:background .2s;border:.5px solid var(--border)}
+.slider-track::before{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;left:3px;top:3px;transition:transform .2s}
+input:checked+.slider-track{background:linear-gradient(90deg,#a855f7,#3b82f6)}
+input:checked+.slider-track::before{transform:translateX(16px)}
+.slider-row{display:flex;flex-direction:column;gap:5px}
+.slider-row label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+input[type=range]{width:100%;accent-color:#a855f7}
+.preview-col{display:flex;flex-direction:column;align-items:center;gap:.9rem;position:sticky;top:1.5rem}
+canvas#cv{display:block;border-radius:50%}
+.size-row{display:flex;gap:6px}
+.size-btn{border:.5px solid var(--border);background:transparent;color:var(--muted);border-radius:8px;padding:5px 12px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .12s}
+.size-btn:hover{border-color:var(--border-h);color:#fff}
+.size-btn.active{border-color:#a855f7;color:#a855f7;background:rgba(168,85,247,.1)}
+.dl-btn{display:flex;align-items:center;gap:9px;border:none;background:linear-gradient(135deg,#a855f7,#3b82f6);color:#fff;border-radius:10px;padding:12px 22px;font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;letter-spacing:.08em;cursor:pointer;width:100%;justify-content:center;transition:opacity .15s,transform .12s}
+.dl-btn:hover{opacity:.88;transform:translateY(-1px)}
+.dl-btn:active{transform:scale(.98)}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo-mark">M</div>
+    <div>
+      <h1>PROFIL<span>BILD</span></h1>
+      <p class="tagline">Generator · PNG Download</p>
+    </div>
+  </header>
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <p class="panel-label">Buchstabe</p>
+        <div class="letter-grid" id="letterGrid"></div>
+      </div>
+      <div class="panel">
+        <p class="panel-label">Außenring</p>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="gradToggle" checked><span class="slider-track"></span></label>
+          <span class="toggle-label">Farbverlauf aktiv</span>
+        </div>
+        <div class="color-group">
+          <label>Ring Farbe 1</label>
+          <div class="chips-row" id="r1Chips"></div>
+        </div>
+        <div class="color-group" id="r2Group">
+          <label>Ring Farbe 2</label>
+          <div class="chips-row" id="r2Chips"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <p class="panel-label">Glow Effekt</p>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="glowToggle"><span class="slider-track"></span></label>
+          <span class="toggle-label">Glow aktivieren</span>
+        </div>
+        <div id="glowControls" style="opacity:.3;pointer-events:none">
+          <div class="color-group">
+            <label>Glow Farbe</label>
+            <div class="chips-row" id="glowChips"></div>
+          </div>
+          <div class="slider-row">
+            <label>Intensität: <span id="glowLabel">50</span>%</label>
+            <input type="range" id="glowInt" min="10" max="100" value="50" step="5">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="preview-col">
+      <canvas id="cv" width="260" height="260"></canvas>
+      <div class="size-row">
+        <button class="size-btn active" onclick="setSize(512)" id="sz512">512 px</button>
+        <button class="size-btn" onclick="setSize(256)" id="sz256">256 px</button>
+        <button class="size-btn" onclick="setSize(1024)" id="sz1024">1024 px</button>
+      </div>
+      <button class="dl-btn" onclick="downloadImg()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        PNG HERUNTERLADEN
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+const ringPresets=['#a855f7','#3b82f6','#ec4899','#06b6d4','#10b981','#f59e0b','#ef4444','#ffffff','#ff6ac1','#facc15'];
+const glowPresets=['#ffffff','#a855f7','#3b82f6','#ec4899','#06b6d4','#10b981','#f59e0b','#ef4444'];
+const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+let state={letter:'M',grad:true,r1:'#a855f7',r2:'#3b82f6',glow:false,glowColor:'#a855f7',glowInt:50,dlSize:512};
 
+const lg=document.getElementById('letterGrid');
+letters.forEach(l=>{
+  const btn=document.createElement('button');
+  btn.className='letter-btn'+(l==='M'?' active':'');
+  btn.textContent=l;
+  btn.onclick=()=>{lg.querySelectorAll('.letter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');state.letter=l;draw();};
+  lg.appendChild(btn);
+});
+
+document.getElementById('glowInt').addEventListener('input',e=>{state.glowInt=+e.target.value;document.getElementById('glowLabel').textContent=e.target.value;draw();});
+document.getElementById('gradToggle').addEventListener('change',e=>{state.grad=e.target.checked;const r2=document.getElementById('r2Group');r2.style.opacity=state.grad?'1':'0.3';r2.style.pointerEvents=state.grad?'':'none';draw();});
+document.getElementById('glowToggle').addEventListener('change',e=>{state.glow=e.target.checked;const gc=document.getElementById('glowControls');gc.style.opacity=state.glow?'1':'0.3';gc.style.pointerEvents=state.glow?'':'none';draw();});
+
+function makeChips(id,presets,key,def){
+  const row=document.getElementById(id);
+  presets.forEach(c=>{
+    const chip=document.createElement('div');
+    chip.className='chip'+(c===def?' active':'');
+    chip.style.background=c;
+    if(c==='#ffffff')chip.style.border='2px solid rgba(255,255,255,0.3)';
+    chip.onclick=()=>{row.querySelectorAll('.chip').forEach(ch=>ch.classList.remove('active'));chip.classList.add('active');state[key]=c;row.querySelector('input[type=color]').value=c;draw();};
+    row.appendChild(chip);
+  });
+  const wrap=document.createElement('div');wrap.className='custom-pick';
+  const inner=document.createElement('div');inner.className='custom-pick-inner';inner.textContent='+';
+  const inp=document.createElement('input');inp.type='color';inp.value=def;
+  inp.addEventListener('input',e=>{state[key]=e.target.value;row.querySelectorAll('.chip').forEach(ch=>ch.classList.remove('active'));draw();});
+  wrap.appendChild(inner);wrap.appendChild(inp);row.appendChild(wrap);
+}
+makeChips('r1Chips',ringPresets,'r1','#a855f7');
+makeChips('r2Chips',ringPresets,'r2','#3b82f6');
+makeChips('glowChips',glowPresets,'glowColor','#a855f7');
+
+function setSize(s){state.dlSize=s;document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));document.getElementById('sz'+s).classList.add('active');}
+
+function renderTo(ctx,W,H){
+  const cx=W/2,cy=H/2,R=W/2;
+  ctx.clearRect(0,0,W,H);
+  const ringPx=R*0.10;
+  const innerR=R-ringPx;
+  const grd=ctx.createLinearGradient(0,0,W,H);
+  grd.addColorStop(0,state.r1);
+  grd.addColorStop(1,state.grad?state.r2:state.r1);
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.fillStyle=grd;ctx.fill();
+  ctx.save();
+  ctx.beginPath();ctx.arc(cx,cy,innerR,0,Math.PI*2);ctx.clip();
+  ctx.fillStyle='#0d0d0d';ctx.fillRect(0,0,W,H);
+  const scaleX=1.25;
+  ctx.save();
+  ctx.scale(scaleX,1);
+  const fs=Math.round(innerR*1.15);
+  ctx.font=`700 ${fs}px 'Oswald', sans-serif`;
+  ctx.textAlign='center';
+  ctx.textBaseline='alphabetic';
+  const scaledCx=cx/scaleX;
+  const m=ctx.measureText(state.letter);
+  const inkCenterAboveBaseline=(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2;
+  const baselineY=cy+inkCenterAboveBaseline;
+  const strokePx=Math.max(1.5,innerR*0.038);
+  if(state.glow){
+    ctx.save();
+    ctx.shadowColor=state.glowColor;
+    ctx.shadowBlur=(state.glowInt/100)*innerR*0.6;
+    ctx.lineWidth=strokePx*2;ctx.strokeStyle=state.glowColor;
+    ctx.lineJoin='round';ctx.miterLimit=6;
+    ctx.strokeText(state.letter,scaledCx,baselineY);
+    ctx.restore();
+  }
+  ctx.lineWidth=strokePx*2;ctx.strokeStyle='#ffffff';
+  ctx.lineJoin='miter';ctx.miterLimit=8;
+  ctx.strokeText(state.letter,scaledCx,baselineY);
+  ctx.fillStyle='#0d0d0d';
+  ctx.fillText(state.letter,scaledCx,baselineY);
+  ctx.restore();
+  ctx.restore();
+}
+
+function draw(){const cv=document.getElementById('cv');renderTo(cv.getContext('2d'),cv.width,cv.height);}
+function downloadImg(){const S=state.dlSize;const off=document.createElement('canvas');off.width=S;off.height=S;renderTo(off.getContext('2d'),S,S);const a=document.createElement('a');a.download=`profil_${state.letter}_${S}px.png`;a.href=off.toDataURL('image/png');a.click();}
+
+document.fonts.ready.then(()=>draw());
+setTimeout(()=>draw(),600);
+</script>
+</body>
+</html>
